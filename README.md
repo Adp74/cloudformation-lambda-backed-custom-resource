@@ -2,10 +2,13 @@
 # Creating Lambda function using CloudFormation
 
 Infrastructure as code is the process of provisioning and managing your cloud resources by writing a template file that is both human readable, and machine consumable. For AWS cloud development the built-in choice for infrastructure as code is AWS CloudFormation. Using AWS CloudFormation you can write a description of the resources that you want to create on your AWS account, and then ask AWS CloudFormation to make this description into reality.
-Following the "Infrastructure as code" principle, this project contains the corresponding template (yaml format) for deploying a cloudwacth event rule that executes the AWS lamdba function periodically. These are the resources created by CloudFormation:
-	• AWS lambda Function
-	• IAM roles
-	• AWS CloudWatch Event
+
+Following the "Infrastructure as code" principle, this project contains the corresponding template (yaml format) for deploying a cloudwacth event rule that executes the AWS lamdba function periodically. 
+
+These are the resources created by CloudFormation:
+-AWS lambda Function
+-IAM roles
+-AWS CloudWatch Event
 
 ## Challenge: Updating Lambda
 
