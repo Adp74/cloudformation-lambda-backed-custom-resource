@@ -6,9 +6,9 @@ Infrastructure as code is the process of provisioning and managing your cloud re
 Following the "Infrastructure as code" principle, this project contains the corresponding template (yaml format) for deploying a cloudwacth event rule that executes the AWS lamdba function periodically. 
 
 These are the resources created by CloudFormation:
--AWS lambda Function
--IAM roles
--AWS CloudWatch Event
+- AWS lambda Function
+- IAM roles
+- AWS CloudWatch Event
 
 ## Challenge: Updating Lambda
 
