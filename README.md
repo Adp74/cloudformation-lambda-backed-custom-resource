@@ -10,6 +10,8 @@ These are the resources created by CloudFormation (see architecture image in fol
 - IAM roles
 - AWS CloudWatch Event
 
+![alt text](https://github.com/Adp74/cloudformation-lambda-backed-custom-resource/blob/master/Images/Lambda-CloudFormation-arch%20(1).png)
+
 ## Challenge: Updating Lambda
 
 The lambda code is stored in a S3 bucket with versioning enabled. Each time the lambda code is updated, a new version of the S3 object is created, with the same S3 key, but a different Version Id. If you try to create a change set or update the stack, CloudFormation will not realize/consider that a change has happened because the script is not part of the CloudFormation resources. When there is an update in Lambda resource property like memory, there is no problem as a CloudFormation will pick these changes and update accordingly. 
