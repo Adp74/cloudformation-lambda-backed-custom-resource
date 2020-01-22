@@ -5,7 +5,7 @@ Infrastructure as code is the process of provisioning and managing your cloud re
 
 Following the "Infrastructure as code" principle, this project contains the corresponding template (yaml format) for deploying a cloudwacth event rule that executes the AWS lamdba function periodically. 
 
-These are the resources created by CloudFormation (see architecture image in folder image):
+These are the resources created by CloudFormation:
 - AWS lambda Function
 - IAM roles
 - AWS CloudWatch Event
@@ -18,7 +18,9 @@ The lambda code is stored in a S3 bucket with versioning enabled. Each time the 
 
 Error message in CloudFormation: Status: Failed. Reason: "The submitted information didn't contain changes. Submit different information to create a change set."
 
-This project contains the approach that I followed to solve this problem. My solution is based on updating a property in the Custom Resource, triggering the invokation of a lambda function that will handle this change, publishing a new version of the original Lambda Function (with the new code). Changing a parameter of a Custom Resource if the way for CloudFormation to realize that there has been a change, and resource needs to be updated (see architecture image in folder image).
+This project contains the approach that I followed to solve this problem. My solution is based on updating a property in the Custom Resource, triggering the invokation of a lambda function that will handle this change, publishing a new version of the original Lambda Function (with the new code). Changing a parameter of a Custom Resource if the way for CloudFormation to realize that there has been a change, and resource needs to be updated.
+
+![alt text](https://github.com/Adp74/cloudformation-lambda-backed-custom-resource/blob/master/Images/Lambda-CloudFormation-customresource.png)
 
 
 ## What happens when lambda code changes?
