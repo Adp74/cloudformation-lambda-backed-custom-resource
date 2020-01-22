@@ -23,4 +23,21 @@ This project contains the approach that I followed to solve this problem. My sol
 ![alt text](https://github.com/Adp74/cloudformation-lambda-backed-custom-resource/blob/master/Images/Lambda-CloudFormation-customresource.png)
 
 
-## What happens when lambda code changes?
+## Custom Resource
+Custom resources enable you to write custom provisioning logic in templates that AWS CloudFormation runs anytime you create, update (if you changed the custom resource), or delete stacks. For example, you might want to include resources that aren't available as AWS CloudFormation resource types.
+
+Use the AWS::CloudFormation::CustomResource or Custom::MyCustomResourceTypeName resource type to define custom resources in your templates. Custom resources require at least one property: the service token, which specifies where AWS CloudFormation sends requests to, such as an Amazon SNS topic or Lambda Function arn. Apart from that, the custom resource may have others input data parameters.
+
+```
+Resources:
+  Custom:
+    Type: Custom::CustomResource
+    Properties:
+      ServiceToken: !GetAtt CustomResourceLambdaFunction.Arn
+      Param1: val1
+      Param2: val2
+        …
+```
+
+
+
