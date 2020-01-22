@@ -1,0 +1,172 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: ""
+
+Parameters:
+  S3Bucket:
+    Description: "S3 Bucket where lambda deployment package is stored"
+    Type: String
+    Default: "" #Add here your S3 bucket
+  
+  S3Key:
+    Description: "S3 Object key corresponded to lambda deployment package"
+    Type: String
+    Default:  "" #Add here your S3 Object Key
+  
+  S3ObjectVersion:
+    Description: "S3 Object Key Version ID, CHANGE THIS PARAMETER TO UPDATE LAMBDA"
+    Type: String
+    Default: "" #Add here your S3 Object Version Id
+
+
+
+Resources:
+
+  #-------------------CUSTOM RESOURCE LOGIC-----------------------------------------------------
+
+  # Custom Resource: Used to publish a new version of Lambda function when Lambda code is updated
+  LambdaCodeFile:
+    Type: Custom::CodeFile 
+    Properties:
+      ServiceToken: !GetAtt 'CodeFileFunction.Arn'
+      S3Bucket: !Ref 'S3Bucket'
+      S3Key: !Ref 'S3Key'
+      FunctionName: !Ref OriginLambdaFunction
+      S3ObjectVersion: !Ref S3ObjectVersion #When code is updated, this parameter has to be updated TOO
+
+
+  CodeFileFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "TEST-customResource-CodeFile-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSLambdaFullAccess
+      Path: /
+      Policies:
+        - PolicyName: lambda-copier
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+
+  # Lambda function used by the Custom-Resource 
+  CodeFileFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Publish new version of Origin Lambda Function when the Lambda code is updated
+      Handler: customLambda.handler
+      Runtime: nodejs12.x
+      Role: !GetAtt 'CodeFileFunctionRole.Arn'
+      Timeout: 240
+      Code: 
+        S3Bucket: !Ref S3Bucket
+        S3Key: serverless-lambdaUpdate.zip #name of the zip file where the custom lambda function is
+  
+        #--------------------------------------------finish of custom resources--------------------------------------#
+
+  #IAM Role for lambda execution
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+      Path: /service-role/
+      ManagedPolicyArns:
+        - #Depending on the actions of the Origin Lambda Function
+
+  #IAM role for event rule
+  EventRuleRole:
+    DeletionPolicy: Retain
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - events.amazonaws.com
+              Action:
+                - 'sts:AssumeRole'
+      Path: /service-role/
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+      
+  #Lambda function
+  OriginLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties: 
+      FunctionName: #Name of your lambda function
+      Description: "Origin Lambda Function"
+      Code: 
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref 'S3Key'
+      Handler: #FunctionName.lambda_handler
+      Role: 
+            Fn::GetAtt: 
+              - LambdaExecutionRole
+              - "Arn"
+      Runtime: python3.7
+      Timeout: 900
+
+  #CloudWatch event to call lambda function
+  ScheduledEventRule:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: Event rule for calling lambda function
+      RoleArn: 
+              Fn::GetAtt: 
+                - EventRuleRole
+                - "Arn"
+      ScheduleExpression: "cron(0 8 * * ? *)"
+      State: "ENABLED"
+      Targets: 
+      - 
+        Arn: 
+          Fn::GetAtt: 
+            - OriginLambdaFunction
+            - "Arn"
+        Id: "TargetFunctionV1"
+  #Lambda permissions
+  PermissionForEventsToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: 
+        Ref: OriginLambdaFunction
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - ScheduledEventRule
+          - "Arn"
+
+
+  
+
+ 
