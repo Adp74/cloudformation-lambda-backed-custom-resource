@@ -87,4 +87,3 @@ In writing a custom resource handler, you’ll need to handle three different ac
 - Delete: A Delete event is invoked when the custom resource is being deleted, either because it was removed from the template as part of a deploy or because the entire stack is being removed.
 Your handler function must be able to handle each of these event types and know how to return a proper response to avoid hanging your deployment.
 
-
