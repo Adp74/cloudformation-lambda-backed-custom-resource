@@ -23,7 +23,7 @@ This project contains the approach that I followed to solve this problem. My sol
 ![alt text](https://github.com/Adp74/cloudformation-lambda-backed-custom-resource/blob/master/Images/Lambda-CloudFormation-customresource.png)
 
 
-## Custom Resource
+# Custom Resource
 Custom resources enable you to write custom provisioning logic in templates that AWS CloudFormation runs anytime you create, update (if you changed the custom resource), or delete stacks. For example, you might want to include resources that aren't available as AWS CloudFormation resource types.
 
 Use the AWS::CloudFormation::CustomResource or Custom::MyCustomResourceTypeName resource type to define custom resources in your templates. Custom resources require at least one property: the service token, which specifies where AWS CloudFormation sends requests to, such as an Amazon SNS topic or Lambda Function arn. Apart from that, the custom resource may have others input data parameters.
@@ -39,5 +39,51 @@ Resources:
         …
 ```
 
+## Change Request and response
+Whenever anyone uses the template to create, update, or delete a custom resource, AWS CloudFormation sends a request to the specified service token. Request format:
+```
+{
+   "RequestType" : "Create",
+   "ResponseURL" : "http://pre-signed-S3-url-for-response",
+   "StackId" : "arn:aws:cloudformation:us-west-2:123456789012:stack/stack-name/guid",
+   "RequestId" : "unique id for this create request",
+   "ResourceType" : "Custom::TestResource",
+   "LogicalResourceId" : "MyTestResource",
+   "ResourceProperties" : {
+      "Name" : "Value",
+      "List" : [ "1", "2", "3" ]
+   }
+}
+```
+The custom resource provider processes the AWS CloudFormation request and returns a response of SUCCESS or FAILED to the pre-signed URL. Example of response:
+```
+{
+   "Status" : "SUCCESS",
+   "PhysicalResourceId" : "TestResource1",
+   "StackId" : "arn:aws:cloudformation:us-west-2:123456789012:stack/stack-name/guid",
+   "RequestId" : "unique id for this create request",
+   "LogicalResourceId" : "MyTestResource",
+   "Data" : {
+      "OutputName1" : "Value1",
+      "OutputName2" : "Value2",
+   }
+}
+
+```
+## Custom Resource Architecture
+
+1. Logic to handle actions (create, delete, update) in custom resource: Lambda Function Code (Node.js)
+2. Deployment of a Lambda function with that logic in the same or a different cloudformation stack.
+3. Deployment of the custom resource in the cloudformation template that references that Lambda function.
+
+Custom resources are implemented in an asynchronous, callback-style programming model. 
+As part of the payload to your custom resource, it will include a presigned S3 URL. When your custom resource is done processing, it should use the presigned S3 URL to upload a JSON object containing the output of the custom resource.
+
+### Event types
+In writing a custom resource handler, you’ll need to handle three different actions:
+	• Create: A Create event is invoked whenever a resource is being provisioned for the first time, either because a new stack is being deployed or because it was added to an existing stack;
+	• Update: An Update event is invoked when the custom resource itself has a property that has changed as part of a CloudFormation deploy.
+	• Delete: A Delete event is invoked when the custom resource is being deleted, either because it was removed from the template as part of a deploy or because the entire stack is being removed.
+Your handler function must be able to handle each of these event types and know how to return a proper response to avoid hanging your deployment.
 
 
