@@ -81,9 +81,9 @@ As part of the payload to your custom resource, it will include a presigned S3 U
 
 ### Event types
 In writing a custom resource handler, you’ll need to handle three different actions:
-	• Create: A Create event is invoked whenever a resource is being provisioned for the first time, either because a new stack is being deployed or because it was added to an existing stack;
-	• Update: An Update event is invoked when the custom resource itself has a property that has changed as part of a CloudFormation deploy.
-	• Delete: A Delete event is invoked when the custom resource is being deleted, either because it was removed from the template as part of a deploy or because the entire stack is being removed.
+- Create: A Create event is invoked whenever a resource is being provisioned for the first time, either because a new stack is being deployed or because it was added to an existing stack;
+- Update: An Update event is invoked when the custom resource itself has a property that has changed as part of a CloudFormation deploy.
+- Delete: A Delete event is invoked when the custom resource is being deleted, either because it was removed from the template as part of a deploy or because the entire stack is being removed.
 Your handler function must be able to handle each of these event types and know how to return a proper response to avoid hanging your deployment.
 
 
